@@ -1,54 +1,89 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { Page } from './entities/page.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
+import { RemovePageDto } from './dto/remove-page.dto';
 
 @Injectable()
 export class PageService {
   constructor(
     @InjectRepository(Page)
-    private pagesRepository: Repository<Page>,
+    private readonly pagesRepository: Repository<Page>,
+    @Inject(UserService)
+    private readonly userService: UserService,
   ) {}
 
-  create(createPageDto: CreatePageDto) {
-    const page = new Page();
-    page.mainImage = createPageDto.mainImage;
-    page.username = createPageDto.username;
-    return this.pagesRepository.save(page);
+  async create(createPageDto: CreatePageDto) {
+    const user = await this.userService.findOne(createPageDto.tgId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    const page = new Page({
+      avatar: createPageDto.avatar,
+      username: createPageDto.username,
+      user: user,
+    });
+    return await this.pagesRepository.save(page);
   }
 
-  findAllByUserId(id: number) {
-    return this.pagesRepository.find({
-      relations: { user: true },
+  async findAllByTgId(tgId: number) {
+    return await this.pagesRepository.find({
       where: {
-        user: { id },
+        user: { tgId },
       },
     });
   }
 
-  findOne(id: number) {
-    return this.pagesRepository.findOne({
-      where: { id },
+  async findOne(id: number) {
+    return await this.pagesRepository.findOne({
+      relations: ['user', 'items'],
+      where: {
+        id,
+      },
     });
   }
 
-  update(id: number, updatePageDto: UpdatePageDto) {
-    const page = this.pagesRepository.findOne({
+  async update(id: number, updatePageDto: UpdatePageDto) {
+    const page = await this.pagesRepository.findOne({
+      relations: {
+        user: true,
+      },
       where: { id },
     });
 
-    return this.pagesRepository.save({
-      ...page,
-      ...updatePageDto,
-    });
+    if (page && page.user.tgId != updatePageDto.tgId) {
+      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+    }
+
+    await this.pagesRepository.update(
+      { id },
+      { avatar: updatePageDto.avatar, username: updatePageDto.username },
+    );
+    return;
   }
 
-  remove(id: number) {
-    const page = this.pagesRepository.findOne({
+  async remove(id: number, removePageDto: RemovePageDto) {
+    const page = await this.pagesRepository.findOne({
+      relations: {
+        user: true,
+      },
       where: { id },
     });
-    return page.then((res) => this.pagesRepository.remove(res));
+
+    if (page && page.user.tgId != removePageDto.tgId) {
+      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+    }
+
+    await this.pagesRepository.remove(page);
+    return;
   }
 }

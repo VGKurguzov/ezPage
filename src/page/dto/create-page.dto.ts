@@ -1,4 +1,5 @@
 export class CreatePageDto {
-  mainImage: string;
+  tgId: number;
+  avatar: string;
   username: string;
 }

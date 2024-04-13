@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { AuthUserDto } from './dto/auth-user.dto';
 
 @Injectable()
 export class UserService {
@@ -11,14 +11,33 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async auth(createUserDto: CreateUserDto) {
-    if (createUserDto.tgId == undefined) {
-      return await this.usersRepository.save(new User());
-    }
-    const user = await this.usersRepository.findOneBy({
-      id: createUserDto.tgId,
+  async auth(authUserDto: AuthUserDto) {
+    let user: User = await this.usersRepository.findOne({
+      relations: {
+        pages: true,
+      },
+      where: {
+        tgId: authUserDto.tgId,
+      },
     });
 
-    return !user ? await this.usersRepository.save(new User()) : user;
+    if (!user || !user.tgId) {
+      const newUser = new User();
+      newUser.tgId = authUserDto.tgId;
+      user = await this.usersRepository.save(newUser);
+    }
+
+    return user;
+  }
+
+  async findOne(tgId: number) {
+    return await this.usersRepository.findOne({
+      relations: {
+        pages: true,
+      },
+      where: {
+        tgId,
+      },
+    });
   }
 }

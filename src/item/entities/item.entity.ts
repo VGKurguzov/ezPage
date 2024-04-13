@@ -1,13 +1,14 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Page } from '../../page/entities/page.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Item {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  icon: string;
+  @Column({ nullable: true })
+  icon?: string;
 
   @Column()
   url: string;
@@ -15,6 +16,7 @@ export class Item {
   @Column()
   title: string;
 
+  @Exclude()
   @ManyToOne(type => Page, page => page.items)
   page: Page;
 }

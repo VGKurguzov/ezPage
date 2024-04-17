@@ -3,10 +3,8 @@ import { AppModule } from './app.module';
 import 'reflect-metadata';
 
 async function bootstrap() {
-  const corsOptions = {
-    origin: '*',
-  };
-  const app = await NestFactory.create(AppModule, { cors: corsOptions });
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
   await app.listen(3000);
 }
 bootstrap();

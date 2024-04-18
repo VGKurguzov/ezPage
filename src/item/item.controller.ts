@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
@@ -28,12 +27,6 @@ export class ItemController {
   @UseInterceptors(EnrichmentInterceptor, ClassSerializerInterceptor)
   async create(@Body() createItemDto: CreateItemDto) {
     return await this.itemService.create(createItemDto);
-  }
-
-  @Get('byPageId/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async findAllByPageId(@Param('id') id: number) {
-    return await this.itemService.findAllByPageId(id);
   }
 
   @Patch(':id')

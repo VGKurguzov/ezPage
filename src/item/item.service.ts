@@ -50,15 +50,6 @@ export class ItemService {
     return await this.itemsRepository.save(item);
   }
 
-  async findAllByPageId(id: number) {
-    return await this.itemsRepository.find({
-      relations: { page: true },
-      where: {
-        page: { id },
-      },
-    });
-  }
-
   async update(id: number, updateItemDto: UpdateItemDto) {
     const item = await this.itemsRepository.findOne({
       relations: ['page', 'page.user'],

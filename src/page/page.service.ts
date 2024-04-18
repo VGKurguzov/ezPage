@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
@@ -41,6 +42,9 @@ export class PageService {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
     return await this.pagesRepository.find({
+      relations: {
+        items: true,
+      },
       where: {
         user: { tgId },
       },
@@ -64,7 +68,11 @@ export class PageService {
       where: { id },
     });
 
-    if (page && page.user.tgId != updatePageDto.tgId) {
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    if (page.user.tgId != updatePageDto.tgId) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
 
@@ -83,7 +91,11 @@ export class PageService {
       where: { id },
     });
 
-    if (page && page.user.tgId != removePageDto.tgId) {
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    if (page.user.tgId != removePageDto.tgId) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
 

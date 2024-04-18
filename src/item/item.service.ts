@@ -56,7 +56,11 @@ export class ItemService {
       where: { id },
     });
 
-    if (item && !item.page) {
+    if (!item) {
+      throw new NotFoundException('Item not found');
+    }
+
+    if (!item.page) {
       throw new NotFoundException('Page not found');
     }
 
@@ -81,7 +85,11 @@ export class ItemService {
       where: { id },
     });
 
-    if (item && !item.page) {
+    if (!item) {
+      throw new NotFoundException('Item not found');
+    }
+
+    if (!item.page) {
       throw new NotFoundException('Page not found');
     }
 

@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { RemovePageDto } from './dto/remove-page.dto';
+import { GetPageDto } from './dto/get-page.dto';
 
 @Injectable()
 export class PageService {
@@ -35,7 +36,10 @@ export class PageService {
     return await this.pagesRepository.save(page);
   }
 
-  async findAllByTgId(tgId: number) {
+  async findAllByTgId(tgId: number, getPageDto: GetPageDto) {
+    if (tgId != getPageDto.tgId) {
+      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+    }
     return await this.pagesRepository.find({
       where: {
         user: { tgId },

@@ -17,6 +17,7 @@ import { UpdatePageDto } from './dto/update-page.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { EnrichmentInterceptor } from '../auth/enrichment.interceptor';
 import { RemovePageDto } from './dto/remove-page.dto';
+import { GetPageDto } from './dto/get-page.dto';
 
 @Controller('page')
 export class PageController {
@@ -31,9 +32,10 @@ export class PageController {
   }
 
   @Get('byTgId/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async findAllByTgId(@Param('id') id: number) {
-    return await this.pageService.findAllByTgId(id);
+  @UseGuards(AuthGuard)
+  @UseInterceptors(EnrichmentInterceptor, ClassSerializerInterceptor)
+  async findAllByTgId(@Param('id') id: number, @Body() getPageDto: GetPageDto) {
+    return await this.pageService.findAllByTgId(id, getPageDto);
   }
 
   @Get(':id')

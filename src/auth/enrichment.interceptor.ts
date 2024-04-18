@@ -6,17 +6,18 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
+import { parseInitData } from '@tma.js/sdk';
 
 @Injectable()
 export class EnrichmentInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     if (request.headers['init-data']) {
-      const data: any = JSON.parse(request.headers['init-data']);
-      if (!data || !data.id) {
+      const initData = parseInitData(request.headers['init-data']);
+      if (!initData || !initData.user.id) {
         throw new BadRequestException('Data not found');
       }
-      request.body['tgId'] = data.id;
+      request.body['tgId'] = initData.user.id;
       return next.handle();
     }
     return next
